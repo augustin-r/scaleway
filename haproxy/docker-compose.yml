@@ -1,0 +1,40 @@
+services:
+  haproxy:
+    image: my-haproxy:latest
+    ports:
+      - "80:80"       # Makes load balancer public
+      - "8080:8080"   # More ports to let trafic go through when testing new bindings
+      - "8081:8081"   # More ports to let trafic go through when testing new bindings
+      - "5555:5555"   # Makes Data Plane API public. WARN! Do not expose outside of your private network in prd.
+    networks:
+      - frontend
+      - backend
+    depends_on:
+      - web1
+      - web2
+      - web3
+
+# web1, web2 & web3 are mocked http servers designed to test that load balancer acts as expected.
+  web1:
+    image: nginx:alpine
+    command: sh -c "echo 'Hello from web1' > /usr/share/nginx/html/index.html && nginx -g 'daemon off;'"
+    networks:
+      - backend
+
+  web2:
+    image: nginx:alpine
+    command: sh -c "echo 'Hello from web2' > /usr/share/nginx/html/index.html && nginx -g 'daemon off;'"
+    networks:
+      - backend
+
+  web3:
+    image: nginx:alpine
+    command: sh -c "echo 'Hello from web3' > /usr/share/nginx/html/index.html && nginx -g 'daemon off;'"
+    networks:
+      - backend
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge 
